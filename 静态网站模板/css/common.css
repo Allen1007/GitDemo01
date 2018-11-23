@@ -1,0 +1,18 @@
+body {
+    position: relative;
+    font-family: frutigernext, "Microsoft YaHei", Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 28px;
+}
+.sign-footer {
+    background: #e1e1e1 !important;
+    color: #626262 !important;
+    font-size: 18px;
+    height:50px;
+    line-height: 50px;
+}
+ .login_header{
+ 	    height: 63px;
+        box-shadow: 2px 3px 10px #e4e4e4;
+ }  
+.sign-footer p{ margin-bottom: 0;}

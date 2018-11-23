@@ -1,0 +1,65 @@
+.container {
+    width: 100%!important;
+    max-width: 1200px;
+}
+ .login_header{
+ 	    height: 63px;
+        box-shadow: 2px 3px 10px #e4e4e4;
+ }  
+.red-title {
+    font-size: 24px;
+    color: #ca0b03;
+    margin: 30px 0 25px 0;
+}
+.red-line{height:10px; 
+	background:#ca0b03;
+	width:100%;
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+}
+.login{
+	background: #f8f9fb;
+    border-radius: 3px;
+    display: block;
+    margin-bottom: 100px;
+}
+.login-info{
+    margin-top: 50px;
+    padding-bottom: 30px;
+}
+.user {
+    position: relative;
+    margin-bottom: 25px;
+}
+.user input {
+    width: 100%;
+    border: 2px solid #b9babe;
+    height: 54px;
+    border-radius: 4px;
+    padding-left: 60px;
+    line-height: 54px;
+}
+.user span {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 50px;
+    height: 50px;
+    background: url(../images/uesr-hui.jpg) no-repeat top left;
+}
+.user.pwd span {
+    background: url(../images/powss.jpg) no-repeat top left;   
+}
+ .login-btn {
+    width: 100%;
+    background-color: #9a0000;
+    height: 47px;
+    line-height: 47px;
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border: none;
+    border-radius:4px;
+    color:#fff;
+    font-weight:bold;
+}

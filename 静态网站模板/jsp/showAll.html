@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>显示所有用户信息</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--  Bootstrap 核心 CSS 文件 -->
+	<link rel="stylesheet" href="../css/bootstrap.min.css">
+	<link rel="stylesheet" href="../css/font-awesome.min.css">
+	<!-- 可选的Bootstrap主题文件（一般不用引入） -->
+	<link rel="stylesheet" href="../css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="../css/common.css">
+	<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+	<script src="../js/jquery-1.11.0.min.js"></script>
+	<!-- Bootstrap 核心 JavaScript 文件 -->
+	<script src="../js/bootstrap.min.js"></script>
+	<!-- Favicons -->
+	<link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
+	<link rel="icon" href="../images/favicon.ico">
+</head>
+<body>
+     <!--顶部start-->
+    <header class="login_header">
+		
+	</header>
+	<!--顶部end-->
+	<!--主体内容start-->
+	<div class="container text-center">
+		<table class="table table-hover table-bordered">
+			<caption class="text-center">用户所有信息</caption>
+			<thead>
+			<tr>
+				<th>编号</th>
+				<th>用户名</th>
+				<th>邮箱</th>
+				<th>性别</th>
+				<th>日期</th>
+				<th>联系方式</th>
+				<th>所在城市</th>
+				<th>操作</th>
+			</tr>
+			</thead>
+			<tr>
+				<td>1</td>
+				<td>张三</td>
+				<td>zhangsan@chinasofti.com</td>
+				<td>男</td>
+				<td>2016-1-1</td>
+				<td>13870071155</td>
+				<td>江西省南昌市</td>
+				<td>
+					<a href="#" data-toggle="modal" data-target="#myModal">详细</a>
+					<a href="edit.html">编辑</a>
+					<a href="add.html">添加</a>
+					<a href="#" onclick="JavaScript:confirm('确认要删除吗？')">删除</a>
+				</td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td>李四</td>
+				<td>lisi@chinasofti.com</td>
+				<td>男</td>
+				<td>2016-12-1</td>
+				<td>13870171155</td>
+				<td>江西省南昌市</td>
+				<td>
+					<a href="#"><i class="icon-info-sign icon-large"></i></a>&nbsp;&nbsp;&nbsp;<a href="#"><i class="icon-edit icon-large"></i></a>&nbsp;&nbsp;<a href="#"><i class="icon-save icon-large"></i></a>&nbsp;&nbsp;<a href="#"><i class="icon-remove icon-large"></i></a>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<!--主体内容end-->
+	<!--底部start-->
+	<footer class="sign-footer text-center">
+			<p>版权所有 © XX技术有限公司 1998-2016。保留一切权利。</p>
+    </footer>
+	<!--底部end-->
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">用户信息</h4>
+      </div>
+      <div class="modal-body">
+        <ul>
+        	<li>编号：1</li>
+        	<li>用户名：张三</li>
+        	<li>邮箱名：zhangsan@chinasofti.com</li>
+        	<li>性别：男</li>
+        	<li>日期：2016-1-1</li>
+        	<li>...</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

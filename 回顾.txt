@@ -1,0 +1,873 @@
+回顾
+1、Springmvc介绍
+2、入门程序
+3、Springmvc架构讲解
+	a)	框架结构
+	b)	组件说明
+课堂内容
+4、Springmvc整合mybatis
+5、参数绑定
+	a)	Springmvc默认支持的类型
+	b)	简单数据类型
+	c)	Pojo类型
+	d)	Pojo包装类型
+	e)	自定义参数绑定
+
+
+2	Spring web mvc介绍
+2.1	Springmvc是什么？
+Spring web mvc和Struts2都属于表现层的框架,它是Spring框架的一部分,我
+们可以从Spring的整体结构中看得出来：
+
+2.2	SpringMVC处理流程
+
+3	入门程序
+3.1	开发环境
+3.2	需求
+	使用ssm整合实现商品列表的展示。
+3.3	需求分析
+	请求的url：/itemList.action
+	参数：无
+	数据：静态数据
+3.4	开发步骤
+3.4.1	第一步：创建一个maven web工程
+3.4.2	第二步：pom.xml 写入相关配置导入jar包
+		完成一系列的配置
+3.4.3	第三步：创建itemList.jsp
+		把参考资料中的itemList.jsp复制到工程的/WEB-INF/jsp目录下。
+		
+3.4.4	第四步：创建ItemsController
+	ItemController是一个普通的java类，不需要实现任何接口，只需要在类上添加@Controller注解即可。
+	@RequestMapping注解指定请求的url，其中“.action”可以加也可以不加。
+	在ModelAndView对象中，将视图设置为“/WEB-INF/jsp/itemList.jsp”
+	@Controller
+	publicclass ItemController {
+
+		@RequestMapping("/itemList")
+		public ModelAndView itemList() throws Exception {	
+			List<Items>itemList = new ArrayList<>();	
+			//商品列表
+			Items items_1 = new Items();
+			items_1.setName("联想笔记本_3");
+			items_1.setPrice(6000f);
+			items_1.setDetail("ThinkPad T430 联想笔记本电脑！");
+			
+			Items items_2 = new Items();
+			items_2.setName("苹果手机");
+			items_2.setPrice(5000f);
+			items_2.setDetail("iphone6苹果手机！");
+			
+			itemList.add(items_1);
+			itemList.add(items_2);
+			//创建modelandView对象
+			ModelAndView modelAndView = new ModelAndView();
+			//添加model
+			modelAndView.addObject("itemList", itemList);
+			//添加视图
+			modelAndView.setViewName("/WEB-INF/jsp/itemList.jsp");
+	//		modelAndView.setViewName("itemsList");	
+			return modelAndView;
+		}
+
+	}
+
+商品数据使用Items类描述，可以使用参考资料中提供的pojo类，
+
+3.4.5	第五步：创建springmvc.xml
+<?xmlversion="1.0"encoding="UTF-8"?>
+<beansxmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+	<!--扫描控制器层的注解-->
+	<context:component-scan base-package="com.huwa.controller"/>
+	
+</beans>
+
+3.4.6	第六步：配置前端控制器
+在web.xml中添加DispatcherServlet的配置。
+	<!-- springmvc核心前端控制器 -->
+	<servlet>
+		<servlet-name>springmvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:springmvc.xml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springmvc</servlet-name>
+		<url-pattern>*.action</url-pattern>
+	</servlet-mapping>
+
+4	Springmvc架构
+4.1	框架结构
+4.2	架构流程
+	1、	用户发送请求至前端控制器DispatcherServlet
+	2、	DispatcherServlet收到请求调用HandlerMapping处理器映射器。
+	3、	处理器映射器根据请求url找到具体的处理器(自定义控制器)，
+		将找到处理器对象 及处理器拦截器(如果有则生成)一并返回给DispatcherServlet。
+	4、	DispatcherServlet通过HandlerAdapter处理器适配器调用 处理器(自定义控制器)
+	5、	HandlerAdapter执行处理器(自定义控制器 Controller，也叫后端控制器)。
+	6、	Controller执行完成返回ModelAndView
+	7、	HandlerAdapter将controller执行结果ModelAndView返回给DispatcherServlet
+	8、	DispatcherServlet将ModelAndView传给ViewReslover视图解析器
+	9、	ViewReslover解析后返回具体View
+	10、DispatcherServlet对View进行渲染视图（即将模型数据填充至视图中）。
+	11、DispatcherServlet响应用户
+
+4.3	组件说明
+以下组件通常使用框架提供实现：
+	*DispatcherServlet：前端控制器
+	用户请求到达前端控制器，它就相当于mvc模式中的c，dispatcherServlet是整个流程控制的中心，
+	由它调用其它组件(映射处理器、适配处理器、视图解析器)处理用户的请求，
+	DispatcherServlet的存在降低了组件之间的耦合性。
+
+	*HandlerMapping：映射处理器
+	HandlerMapping负责根据用户请求(url)找到Handler(Controller)即处理器，
+	springmvc提供了不同的映射器实现不同的映射方式，
+	例如：配置文件方式XML，实现接口方式，注解方式等。
+
+	*Handler：处理器  ---我们编写的功能 控制器层
+	Handler 是继DispatcherServlet前端控制器的后端控制器，
+	在DispatcherServlet的控制下Handler对具体的用户请求进行处理。
+	由于Handler涉及到具体的用户业务请求，所以一般情况需要程序员根据业务需求开发Handler。
+
+	*HandlAdapter：适配处理器
+	通过HandlerAdapter调用自定义的处理器(控制器)，这是适配器模式的应用，
+	通过扩展适配器可以对更多类型的处理器进行执行。
+
+	*View Resolver：视图解析器
+	View Resolver负责将处理结果生成View视图，
+	View Resolver首先根据逻辑视图名(返回的字符串)解析成物理视图名即具体的页面地址，
+	再生成View视图对象，最后对View进行渲染将处理结果通过页面展示给用户。 
+
+	*View：视图
+	springmvc框架提供了很多的View视图类型的支持，
+	包括：jstlView、freemarkerView、pdfView等。我们最常用的视图就是jsp。
+	一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，
+	需要由程序员根据业务需求开发具体的页面。
+
+	说明：在springmvc的各个组件中，处理器映射器、处理器适配器、视图解析器称为springmvc的三大组件。
+	需要用户开放的组件有handler、view
+
+4.4	框架默认加载组件
+
+4.5	注解映射器和适配器
+4.5.1	组件扫描器
+	使用组件扫描器省去在spring容器配置每个controller类的繁琐。
+	
+	使用<context:component-scan >自动扫描标记@controller的控制器类，配置如下：
+
+<!-- 扫描controller注解,多个包中间使用半角逗号分隔 -->
+	<context:component-scan base-package="com.hwua.controller"/>
+	<context:component-scan base-package="com.hwua.controller,com.hwua.dao,com.hwua.biz"/>
+
+4.5.2	RequestMappingHandlerMapping
+	注解式处理器映射器，对类中标记@ResquestMapping的方法进行映射，
+	根据ResquestMapping定义的url匹配ResquestMapping标记的方法，
+	匹配成功返回HandlerMethod对象给前端控制器，HandlerMethod对象中封装url对应的方法Method。 
+
+	从spring3.1版本开始，废除了DefaultAnnotationHandlerMapping的使用，
+	推荐使用RequestMappingHandlerMapping完成注解式处理器映射。
+
+配置如下：
+
+<!--注解映射器 -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"/>
+	
+注解描述：
+@RequestMapping：定义请求url到处理器功能方法的映射
+
+
+4.5.3	RequestMappingHandlerAdapter
+	注解式处理器适配器，对标记@ResquestMapping的方法进行适配。
+
+	从spring3.1版本开始，废除了AnnotationMethodHandlerAdapter的使用，
+	推荐使用RequestMappingHandlerAdapter完成注解式处理器适配。
+
+配置如下：
+<!--注解适配器 -->
+	<beanclass="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter"/>
+
+4.5.4	<mvc:annotation-driven> 自动添加映射处理器和适配处理器的注解
+	springmvc使用<mvc:annotation-driven>
+	自动加载RequestMappingHandlerMapping和RequestMappingHandlerAdapter，
+	可用在springmvc.xml配置文件中使用<mvc:annotation-driven>替代注解处理器和适配器的配置。
+	
+4.6	视图解析器
+在springmvc.xml文件配置如下：
+	<beanclass="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<propertyname="viewClass"
+			value="org.springframework.web.servlet.view.JstlView"/>
+		<propertyname="prefix"value="/WEB-INF/jsp/"/>
+		<propertyname="suffix"value=".jsp"/>
+	</bean>
+
+InternalResourceViewResolver：支持JSP视图解析
+viewClass：JstlView表示JSP模板页面需要使用JSTL标签库，
+	所以classpath中必须包含jstl的相关jar 包。
+	此属性可以不设置，默认为JstlView。
+	prefix 和suffix：查找视图页面的前缀和后缀，最终视图的址为：
+	前缀+逻辑视图名+后缀，逻辑视图名需要在controller中返回ModelAndView指定，
+	比如逻辑视图名为hello，则最终返回的jsp视图地址 “WEB-INF/jsp/hello.jsp”
+	比如逻辑视图名为users/hello，则最终返回的jsp视图地址 “WEB-INF/jsp/users/hello.jsp”
+
+	
+------------课堂内容 SSM整合------------
+5	整合mybatis
+	为了更好的学习 springmvc和mybatis整合开发的方法，需要将springmvc和mybatis进行整合。
+
+整合目标：控制层采用springmvc、持久层使用mybatis实现。
+
+5.1	需求
+	实现商品查询列表，从mysql数据库查询商品信息。
+5.2	jar包
+	包括：spring（包括springmvc）、mybatis、mybatis-spring整合包、数据库驱动、第三方连接池。
+	参考：“mybatis与springmvc整合全部jar包”目录 
+5.3	工程搭建
+5.3.1	整合思路
+Dao层：
+1、mybatis-config.xml，空文件即可。需要文件头。
+	<?xml version="1.0" encoding="UTF-8" ?>
+	<!DOCTYPE configuration
+	  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+	<configuration>
+		<!-- log4j日志文件 打印输出执行的sql语句-->
+		<settings>
+			<setting name="logImpl" value="LOG4J" />
+		</settings>
+		<!-- 分页插件 -->
+		<plugins>
+			<plugin interceptor="com.github.pagehelper.PageHelper">
+				<property name="dialect" value="mysql" />
+			</plugin>
+		</plugins>
+	</configuration>
+	
+	log4j.properties 日志文件
+	# Global logging configuration
+	log4j.rootLogger=DEBUG, stdout
+	# Console output...
+	log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+	log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+	log4j.appender.stdout.layout.ConversionPattern=%5p [%t] - %m%n
+
+spring	
+	applicationContext-dao.xml      Dao层
+	applicationContext-service.xml  biz层
+	applicationContext-tx.xml       事务处理
+	springmvc.xml   控制器层
+
+2、applicationContext-dao.xml。
+    0)  db.properties 连接相关信息
+	a)	数据库连接池(c3p0)
+	b)	SqlSessionFactory对象，需要spring和mybatis整合包下的。
+	c)	配置mapper文件扫描器。
+	
+	
+Service层：
+	1、applicationContext-service.xml包扫描器，扫描@service注解的类。
+	2、applicationContext-tx.xml配置事务。
+表现层：
+Springmvc.xml
+	1、包扫描器，扫描@Controller注解的类。
+	2、配置注解驱动。
+	3、视图解析器
+Web.xml
+配置前端控制器。
+5.3.2	mybatis-config.xml
+	在classpath下创建mybatis-config.xml
+	<?xmlversion="1.0"encoding="UTF-8"?>
+	<!DOCTYPEconfiguration
+	PUBLIC"-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+	<configuration>
+		<settings>
+			<setting name="logImpl" value="LOG4J" />
+		</settings>
+		<!-- 分页插件 -->
+		<plugins>
+			<plugin interceptor="com.github.pagehelper.PageHelper">
+				<property name="dialect" value="mysql" />
+			</plugin>
+		</plugins>
+	</configuration>
+
+5.3.3	applicationContext-dao.xml
+配置数据源、配置SqlSessionFactory、mapper扫描器。
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	<!-- 加载 jdbc.properties 数据连接配置信息 -->
+	<context:property-placeholder location="classpath:db.properties" />
+	<!-- 扫描Dao层注解包 -->
+	<context:component-scan base-package="com.hwua.dao"></context:component-scan>
+	<!-- c3p0数据源配置 -->
+	<bean class="com.mchange.v2.c3p0.ComboPooledDataSource" id="dataSource">
+		<property name="driverClass" value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- 指定连接池中保留的最大连接数. Default:15 -->
+		<property name="maxPoolSize" value="${c3p0.maxPoolSize}" />
+		<!-- 指定连接池中保留的最小连接数 -->
+		<property name="minPoolSize" value="${c3p0.minPoolSize}" />
+		<!-- 指定连接池的初始化连接数 取值应在minPoolSize 与 maxPoolSize 之间.Default:3 -->
+		<property name="initialPoolSize" value="${c3p0.initialPoolSize}" />
+		<!-- 最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。 Default:0 -->
+		<property name="maxIdleTime" value="${c3p0.maxIdleTime}" />
+		<!-- 当连接池中的连接耗尽的时候c3p0一次同时获取的连接数. Default:3 -->
+		<property name="acquireIncrement" value="${c3p0.acquireIncrement}" />
+		<!-- JDBC的标准,用以控制数据源内加载的PreparedStatements数量。 但由于预缓存的statements属于单个connection而不是整个连接池所以设置这个参数需要考虑到多方面的因数. 
+			如果maxStatements与maxStatementsPerConnection均为0,则缓存被关闭。Default:0 -->
+		<property name="maxStatements" value="${c3p0.maxStatements}" />
+		<!-- 每60秒检查所有连接池中的空闲连接.Default:0 -->
+		<property name="idleConnectionTestPeriod" value="${c3p0.idleConnectionTestPeriod}" />
+		<property name="testConnectionOnCheckout" value="${c3p0.testConnectionOnCheckout}" />
+	</bean>
+
+	<!-- mapper配置 -->
+	<!-- spring和MyBatis完美整合，不需要mybatis的配置映射文件 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描mapper.xml文件 -->
+		<property name="mapperLocations" value="classpath:com/hwua/mapper/*.xml"></property>
+		<!-- 它一般对应我们的实体类所在的包，这个时候会自动取对应包中不包括包名的简单类名作为 包括包名的别名。com.hwua.entity.Users 
+			别名Users -->
+		<!--多个package之间可以用逗号或者分号等来进行分隔。(value的值一定要是包的全名) -->
+		<property name="typeAliasesPackage" value="com.hwua.entity" />
+		<!-- 方式一 分页插件 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+	</bean>
+
+	<!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.hwua.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+	</bean>
+</beans>
+
+
+db.properties
+	jdbc.driverClassName=com.mysql.jdbc.Driver
+	jdbc.url=jdbc:mysql://localhost:3306/mybatis?useUnicode=true&characterEncoding=utf8
+	jdbc.username=root
+	jdbc.password=root
+	
+	#c3p0连接池配置
+	c3p0.minPoolSize=1
+	#连接池中保留的最大连接数。
+	c3p0.maxPoolSize=20
+	#初始化时获取三个连接，取值应在minPoolSize与maxPoolSize之间。
+	c3p0.initialPoolSize=10
+	#最大空闲时间,1800秒内未使用则连接被丢弃。若为0则永不丢弃。
+	c3p0.maxIdleTime=1800
+	#当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。
+	c3p0.acquireIncrement=10
+	#JDBC的标准参数，用以控制数据源内加载的PreparedStatements数量。
+	#但由于预缓存的statements属于单个connection而不是整个连接池。
+	#所以设置这个参数需要考虑到多方面的因素。如果maxStatements与maxStatementsPerConnection均为0，则缓存被关闭。
+	c3p0.maxStatements=0
+	#每1800秒检查所有连接池中的空闲连接。
+	c3p0.idleConnectionTestPeriod=1800
+	 
+	#定义在从数据库获取新连接失败后重复尝试的次数。
+	#c3p0.acquireRetryAttempts=30
+	#获取连接失败将会引起所有等待连接池来获取连接的线程抛出异常。但是数据源仍有效保留，并在下次调用getConnection()的时候继续尝试获取连接。
+	#如果设为true，那么在尝试获取连接失败后该数据源将申明已断开并永久关闭。
+	#c3p0.breakAfterAcquireFailure=true
+	#因性能消耗大请只在需要的时候使用它。如果设为true那么在每个connection提交的时候都将校验其有效性。
+	#建议使用idleConnectionTestPeriod或automaticTestTable等方法来提升连接测试的性能。
+	c3p0.testConnectionOnCheckout=true
+	
+
+5.3.4	applicationContext-service.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	<!-- 导入 applicationContext-dao.xml 配置 -->
+    <import resource="applicationContext-dao.xml"/>
+    <!-- 扫描 业务逻辑层注解 -->
+    <context:component-scan base-package="com.hwua.biz"></context:component-scan>
+</beans>
+
+
+5.3.5	applicationContext-tx.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	<!-- 引入 applicationContext-service.xml  -->
+	<import resource="applicationContext-service.xml"/>
+	<!-- 声明式事物控制开始 -->
+	<!-- 定义数据源事物管理器 org.springframework.jdbc.datasource.DataSourceTransactionManager 
+		只适合jdbc和没有mybatis -->
+	<!-- 定义数据源事物管理器 org.springframework.orm.hibernate4.HibernateTransactionManager 
+		适合hibernate -->
+	<bean id="dataSourceTransactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 声明事物控制通知 之前aop的增强类 -->
+	<tx:advice id="txAdvice" transaction-manager="dataSourceTransactionManager">
+		<!-- 增强(事务)的属性的配置 -->
+		<tx:attributes>
+			<!-- isolation:DEFAULT :事务的隔离级别. propagation :事务的传播行为. read-only :false.不是只读 
+				timeout :-1 no-rollback-for :发生哪些异常不回滚 rollback-for :发生哪些异常回滚事务 -->
+			<tx:method name="insert*" isolation="DEFAULT" propagation="REQUIRED"
+				read-only="false" />
+			<tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED"
+				read-only="false" />
+			<tx:method name="update*" isolation="DEFAULT" propagation="REQUIRED"
+				read-only="false" />
+			<tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED"
+				read-only="false" />
+			<tx:method name="find*" read-only="true" />
+			<tx:method name="load*" read-only="true" />
+			<tx:method name="select*" read-only="true" />
+			<tx:method name="get*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 配置事物的 aop根节点 -->
+	<aop:config>
+		<!-- 定义切点:哪些类的哪些方法应用增强 within指定哪些类 -->
+		<aop:pointcut expression="within(com.hwua.biz..*)" id="txPointCut" />
+		<!-- 定义切面 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut" />
+	</aop:config>
+
+</beans>
+
+5.3.6	springmvc.xml
+<?xmlversion="1.0"encoding="UTF-8"?>
+<beansxmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<!-- 扫描带Controller注解的类 -->
+	<context:component-scan base-package="com.hwua.controller"/>
+	<!-- 映射处理器 适配处理器 -->
+	<mvc:annotation-driven/>
+	<!-- 视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView"/>
+		<!-- jsp前缀 -->
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+		<!-- jsp后缀 -->
+		<property name="suffix" value=".jsp"/>
+	</bean>
+</beans>
+
+5.3.7	web.xml
+	1 上下文参数(spring位置) 监听器Spring上下文
+	2 Springmvc核心控制器 servlet-class
+	3 防止中文乱码过滤器
+
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>Archetype Created Web Application</display-name>
+	<!-- 上下文参数 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring/applicationContext-tx.xml</param-value>
+	</context-param>
+
+	<!-- 指定编码格式urf-8 -->
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>utf-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<!-- 加载spring容器 上下文监听器 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
+	<!-- spring-mvc 核心控制器 -->
+	<servlet>
+		<servlet-name>springmvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<!-- 加载springmvc配置 -->
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/springmvc.xml</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springmvc</servlet-name>
+		<!-- 可以配置/ ，此工程 所有请求全部由springmvc解析， 此种方式可以实现 RESTful方式，需要特殊处理 对静态文件的解析不能由springmvc解析 
+			可以配置*.do或*.action，所有请求的url扩展名为.do或.action由springmvc解析，此种方法常用 不可以/*，如果配置/*，返回jsp也由springmvc解析，这是不对的。 
+			http://localhost:8080/项目名/hello.action -->
+		<url-pattern>*.action</url-pattern>
+	</servlet-mapping>
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+</web-app>
+
+
+实现商品查询列表，从mysql数据库查询商品信息。
+5.4	Dao
+	mybatis逆向工程。
+		com.hwua.entity  	实体类
+		com.hwua.dao  		一系列XXXmapper.java 接口
+		com.hwua.mapper 	xxxMapper.xml mybatis映射文件	
+5.5	Service
+	1、Service由spring管理
+	2、spring对Service进行事务控制。
+5.5.1	ItemService接口
+public interface ItemService {
+	List<Items> getItemsList();
+}
+
+
+5.5.2	ItemServiceImpl实现类
+@Service
+publicclass ItemServiceImpl implements ItemService {
+
+	@Autowired
+	private ItemMapper itemMapper;
+	
+	@Override
+	public List<Items> getItemsList() {
+		List<Items>itemList = itemMapper.getItemList();
+		returnitemList;
+	}
+
+}
+
+5.6	Controller
+@Controller
+public class ItemController {
+
+	@Autowired
+	private ItemService itemService;
+	
+	@RequestMapping("/itemList")
+	public ModelAndView getItemList() {
+		List<Items>list = itemService.getItemsList();
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.addObject("itemList", list);
+		modelAndView.setViewName("itemList");
+		return modelAndView;
+	}
+}
+
+5.7	测试
+访问：http://localhost:8088/ssm/items/itemList.action
+
+
+6	参数绑定
+6.1	绑定简单数据类型
+6.1.1	需求
+	打开商品编辑页面，展示商品信息。
+6.1.2	需求分析
+	编辑商品信息，需要根据商品id查询商品信息，然后展示到页面。
+	请求的url：/itemEdit.action
+	参数：id（商品id）
+	响应结果：商品编辑页面，展示商品详细信息。
+
+6.1.3	Service
+@Override
+	public Items getItemById(int id) {
+		Items items = itemMapper.getItemById(id);
+		return items;
+	}
+
+
+
+6.1.4	Controller参数绑定
+要根据id查询商品数据，需要从请求的参数中把请求的id取出来。Id应该包含在Request对象中。
+可以从Request对象中取id。
+@RequestMapping("/itemEdit")
+	public ModelAndView itemEdit(HttpServletRequest request) {
+		//从Request中取id
+		String strId = request.getParameter("id");
+		Integer id = null;
+		//如果id有值则转换成int类型
+		if (strId != null&& !"".equals(strId)) {
+			id = newInteger(strId);
+		} else {
+			//出错
+			return null;
+		}
+		Items items = itemService.getItemById(id);
+		//创建ModelAndView
+		ModelAndView modelAndView = new ModelAndView();
+		//向jsp传递数据
+		modelAndView.addObject("item", items);
+		//设置跳转的jsp页面
+		modelAndView.setViewName("editItem");
+		return modelAndView;
+	}
+如果想获得Request对象只需要在Controller方法的形参中添加一个参数即可。
+Springmvc框架会自动把Request对象传递给方法。
+6.1.5	默认支持的参数类型
+	处理器形参中添加如下类型的参数处理适配器会默认识别并进行赋值。
+6.1.5.1	HttpServletRequest
+	通过request对象获取请求信息
+6.1.5.2	HttpServletResponse
+	通过response处理响应信息
+6.1.5.3	HttpSession
+	通过session对象得到session中存放的对象
+6.1.5.4	Model/ModelMap
+	ModelMap是Model接口的实现类，通过Model或ModelMap向页面传递数据，如下：
+
+	//调用service查询商品信息
+	Items item = itemService.findItemById(id);
+	model.addAttribute("item", item);
+
+	页面通过${item.XXXX}获取item对象的属性值。
+	使用Model和ModelMap的效果一样，如果直接使用Model，springmvc会实例化ModelMap。
+	如果使用Model则可以不使用ModelAndView对象，Model对象可以向页面传递数据，View对象则可以使用String返回值替代。
+	不管是Model还是ModelAndView，其本质都是使用Request对象向jsp传递数据。
+	如果使用Model则方法可以改造成：
+	@RequestMapping("/itemEdit")
+		publicString itemEdit(HttpServletRequest request, Model model) {
+			//从Request中取id
+			String strId = request.getParameter("id");
+			Integer id = null;
+			//如果id有值则转换成int类型
+			if (strId != null&& !"".equals(strId)) {
+				id = newInteger(strId);
+			} else {
+				//出错
+				returnnull;
+			}
+			Items items = itemService.getItemById(id);
+			//创建ModelAndView
+			//ModelAndView modelAndView = new ModelAndView();
+			//向jsp传递数据
+			//modelAndView.addObject("item", items);
+			model.addAttribute("item", items);
+			//设置跳转的jsp页面
+			//modelAndView.setViewName("editItem");
+			//return modelAndView;
+			return"editItem";
+		}
+
+
+6.1.6	绑定简单类型
+当请求的参数名称和处理器形参名称一致时会将请求参数与形参进行绑定。
+从Request取参数的方法可以进一步简化。
+@RequestMapping("/itemEdit")
+	public String itemEdit(Integer id, Model model) {
+		Items items = itemService.getItemById(id);
+		//向jsp传递数据
+		model.addAttribute("item", items);
+		//设置跳转的jsp页面
+		return"editItem";
+	}
+
+6.1.6.1	支持的数据类型
+	参数类型推荐使用包装数据类型(实体类使用包装类)，因为基础数据类型不可以为null
+	整形：Integer、int
+	字符串：String
+	单精度：Float、float
+	双精度：Double、double
+	布尔型：Boolean、boolean
+	说明：对于布尔类型的参数，请求的参数值为true或false。
+	处理器方法：
+	public String editItem(Model model,Integer id,Boolean status) throws Exception
+	请求url：
+	http://localhost:8080/xxx.action?id=2&status=false
+	
+6.1.6.2	@RequestParam  解决请求参数名 和控制器方法定义参数名不一致的问题
+	使用@RequestParam常用于处理简单类型的绑定。
+
+	value：参数名字，即入参的请求参数名字(从页面获取的参数名)，
+		如value=“item_id”表示请求的参数区中的名字为item_id的参数的值将传入；
+	required：是否必须，默认是true，表示请求中一定要有相应的参数，否则将报；
+		TTP Status 400 - Required Integer parameter 'XXXX' is not present
+
+	default Value：默认值，表示如果请求中没有同名参数时的默认值
+定义如下：
+public String editItem(@RequestParam(value="item_id",required=true) String id) {
+	
+}
+
+形参名称为id，但是这里使用value="item_id"限定请求的参数名为item_id，
+所以页面传递参数的名必须为item_id。
+注意：如果请求参数中没有item_id将跑出异常：
+HTTP Status 500 - Required Integer parameter 'item_id' is not present
+
+这里通过required=true限定item_id参数为必需传递，如果不传递则报400错误，
+可以使用defaultvalue设置默认值，即使required=true也可以不传item_id参数值
+
+6.2	绑定pojo类型 (绑定对象类型 实体类)
+
+
+6.2.1	需求
+	将页面修改后的商品信息保存到数据库中。
+6.2.2	需求分析
+	请求的url：/updateitem.action
+	参数：表单中的数据。name属性值要和实体类的属性值一致
+	响应内容：更新成功页面
+6.2.3	使用pojo接收表单数据
+	如果提交的参数很多，或者提交的表单中的内容很多的时候可以使用pojo接收数据。
+	要求pojo对象中的属性名和表单中input的name属性一致。
+	页面定义如下;
+	<input type="text" name="name"/>
+	<input type="text" name="price"/>
+
+Pojo定义：
+
+请求的参数名称和pojo的属性名称一致，会自动将请求参数赋值给pojo的属性。
+
+@RequestMapping("/updateitem")
+	public String updateItem(Items items) {
+		itemService.updateItem(items);
+		return"success";
+	}
+
+注意：提交的表单中不要有日期类型的数据，否则会报400错误。
+如果想提交日期类型的数据需要用到后面的 自定义参数绑定的内容。
+
+6.2.4	解决post乱码问题
+在web.xml中加入：
+<filter>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>utf-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+以上可以解决post请求乱码问题。
+对于get请求中文参数出现乱码解决方法有两个：
+
+修改tomcat配置文件添加编码与工程编码一致，如下：
+<Connector URIEncoding="utf-8" connectionTimeout="20000" port="8080" protocol="HTTP/1.1" redirectPort="8443"/>
+
+另外一种方法对参数进行重新编码：
+String userName new 
+String(request.getParamter("userName").getBytes("ISO8859-1"),"utf-8")
+ISO8859-1是tomcat默认编码，需要将tomcat编码后的内容按utf-8编码
+
+6.3	绑定包装pojo
+6.3.1	需求
+使用包装的pojo接收商品信息的查询条件。
+
+6.3.2	需求分析
+包装对象定义如下：
+Public class QueryVo {
+	private Items items;
+
+}
+
+页面定义：
+
+<input type="text" name="items.name" />
+<input type="text" name="items.price" />
+
+Controller方法定义如下：
+
+public String useraddsubmit(Model model,QueryVoqueryVo)throws Exception{
+System.out.println(queryVo.getItems());
+
+6.3.3	接收查询条件
+@RequestMapping("/queryitem")
+	public String queryItem(QueryVo queryVo) {
+		System.out.println(queryVo.getItems().getName());
+		System.out.println(queryVo.getItems().getPrice());
+		return null;
+	}
+
+6.4	自定义参数绑定
+6.4.1	需求
+	在商品修改页面可以修改商品的生产日期，并且根据业务需求自定义日期格式。
+6.4.2	需求分析
+	由于日期数据有很多种格式，所以springmvc没办法把字符串转换成日期类型。
+	所以需要自定义参数绑定。前端控制器接收到请求后，找到注解形式的处理器适配器，
+	对RequestMapping标记的方法进行适配，并对方法中的形参进行参数绑定。
+	在springmvc这可以在处理器适配器上自定义Converter进行参数绑定。
+	如果使用<mvc:annotation-driven/>可以在此标签上进行扩展。
+
+6.4.3	自定义Converter
+publicclass DateConverter implements Converter<String, Date> {
+
+	@Override
+	public Date convert(String source) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			returnsimpleDateFormat.parse(source);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		returnnull;
+	}
+}
+
+6.4.4	配置Converter
+ 
+
+	<!-- 加载注解驱动 -->
+	<mvc:annotation-driven conversion-service="conversionService"/>
+	<!-- 转换器配置 -->
+	<bean id="conversionService"
+		class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<property name="converters">
+			<set>
+				<bean class="com.hwua.convert.DateConverter" />
+			</set>
+		</property>
+	</bean>
+
+	Struts采用值栈存储请求和响应的数据，通过OGNL存取数据， 
+	springmvc通过参数解析器是将request请求内容解析，并给方法形参赋值，
+	将数据和视图封装成ModelAndView对象，最后又将ModelAndView中的模型数据通过reques域传输到页面。
+	Jsp视图解析器默认使用jstl。
+
+	
+rest表述性状态传递  访问静态资源
+http://localhost:8080/ssm?id=12
+
+http://localhost:8080/ssm/12/
+http://localhost:8080/ssm/userId/12/item_id/11
+
+方式一
+<mvc:resources mapping="/resources/**" location="/resources/"/>
+访问路径为/resources/** 时 访问/webContent/resources目录的静态资源	
+
+ <mvc:resources location="/img/" mapping="/img/**"/>   
+ <mvc:resources location="/js/" mapping="/js/**"/>    
+ <mvc:resources location="/css/" mapping="/css/**"/>  
+说明：
+location元素表示webapp目录下的static包下的所有文件；
+mapping元素表示以/static开头的所有请求路径，如/static/a 或者/static/a/b；
+该配置的作用是：DispatcherServlet不会拦截以/static开头的所有请求路径，并当作静态资源
+交由Servlet处理。
